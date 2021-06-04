@@ -1,1 +1,1 @@
-> Definí la función `siguiente`.
+> Definí la función `dobleDelSiguiente` utilizando composición.

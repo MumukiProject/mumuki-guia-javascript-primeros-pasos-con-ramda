@@ -1,5 +1,5 @@
 describe("Descripción del grupo", function() {
   it("Descripción del ejemplo", function() {
-    assert(siguiente(1) == 2)
+    assert(dobleDelSiguiente(1) == 4)
   })
 })

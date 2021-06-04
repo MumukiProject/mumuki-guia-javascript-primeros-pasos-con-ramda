@@ -1,0 +1,11 @@
+---
+expectations:
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: doble
+  inspection: Declares
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: triple
+  inspection: Declares
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: anterior
+  inspection: Declares

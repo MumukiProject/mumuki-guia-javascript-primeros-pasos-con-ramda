@@ -7,12 +7,12 @@ describe("triple", function() {
   })
 })
 
-describe("anterior", function() {
-  it("de 2 es 1", function() {
-    assert.equal(anterior(2), 1)
+describe("primeraLetra", function() {
+  it("de 'hola' es h", function() {
+    assert.equal(primeraLetra('hola'), 'h')
   })
-  it("de 3 es 2", function() {
-    assert.equal(anterior(3), 2)
+  it("de 'La Paz' es 'L'", function() {
+    assert.equal(primeraLetra('La Paz'),  'L')
   })
 })
 

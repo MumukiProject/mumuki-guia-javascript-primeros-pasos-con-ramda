@@ -5,7 +5,7 @@ expectations:
   inspection: Declares:triple
 - !ruby/hash:ActiveSupport::HashWithIndifferentAccess
   binding: "*"
-  inspection: Declares:anterior
+  inspection: Declares:primeraLetra
 - !ruby/hash:ActiveSupport::HashWithIndifferentAccess
   binding: "*"
   inspection: Declares:esMayorA10

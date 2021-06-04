@@ -1,0 +1,1 @@
+Los strings tienen un método `charAt(índice)` que devuelve el carácter que indiquemos por parámetro.

@@ -1,0 +1,1 @@
+> Definí la función `siguiente`.

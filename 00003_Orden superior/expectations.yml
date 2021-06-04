@@ -1,0 +1,20 @@
+---
+expectations:
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: "*"
+  inspection: Declares:losTriples
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: "*"
+  inspection: Declares:lasIniciales
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: "*"
+  inspection: Declares:mayoresA10
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: losTriples
+  inspection: Uses:triple
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: lasIniciales
+  inspection: Uses:primeraLetra
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: mayoresA10
+  inspection: Uses:esMayorA10

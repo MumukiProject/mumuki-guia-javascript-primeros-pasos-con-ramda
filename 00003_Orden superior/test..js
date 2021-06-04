@@ -1,22 +1,16 @@
-describe("triple", function() {
-  it("de 2 es 6", function() {
-    assert.equal(triple(2), 6)
-  })
-  it("de 3 es 9", function() {
-    assert.equal(triple(3), 9)
+describe("losTriples", function() {
+  it("de [1, 2, 3] es [3, 6, 9]", function() {
+    assert.equal(losTriples([1, 2, 3]), [3, 6, 9])
   })
 })
 
-describe("primeraLetra", function() {
-  it("de 'hola' es h", function() {
-    assert.equal(primeraLetra('hola'), 'h')
-  })
-  it("de 'La Paz' es 'L'", function() {
-    assert.equal(primeraLetra('La Paz'),  'L')
+describe("lasIniciales", function() {
+  it("de ['Andrea', 'Joaquín', 'Elmer'] son ['A', 'J', 'E']", function() {
+    assert.equal(lasIniciales(['Andrea', 'Joaquín', 'Elmer']), ['A', 'J', 'E'])
   })
 })
 
-describe("esMayorA10", function() {
+describe("mayoresA10", function() {
   it("12 sí lo es", function() {
     assert(esMayorA10(12))
   })

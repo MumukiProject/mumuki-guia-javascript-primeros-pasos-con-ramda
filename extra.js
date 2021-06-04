@@ -3,12 +3,6 @@
 //  (c) 2013-2021 Scott Sauyet, Michael Hurley, and David Chambers
 //  Ramda may be freely distributed under the MIT license.
 
-(function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (global = global || self, factory(global.R = {}));
-}(this, (function (exports) { 'use strict';
-
   function _arity(n, fn) {
     /* eslint-disable no-unused-vars */
     switch (n) {
@@ -868,12 +862,3 @@
    */
 
   var inc = add(1);
-
-  exports.compose = compose;
-  exports.filter = filter;
-  exports.inc = inc;
-  exports.reduce = reduce;
-
-  Object.defineProperty(exports, '__esModule', { value: true });
-
-})));

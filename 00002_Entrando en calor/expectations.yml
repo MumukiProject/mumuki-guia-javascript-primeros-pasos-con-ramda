@@ -1,8 +1,8 @@
 ---
 expectations:
 - !ruby/hash:ActiveSupport::HashWithIndifferentAccess
-  binding: doble
-  inspection: Declares
+  binding: "."
+  inspection: Declares:doble
 - !ruby/hash:ActiveSupport::HashWithIndifferentAccess
   binding: triple
   inspection: Declares

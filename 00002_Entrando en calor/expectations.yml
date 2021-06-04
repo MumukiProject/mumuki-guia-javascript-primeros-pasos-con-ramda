@@ -1,7 +1,7 @@
 ---
 expectations:
 - !ruby/hash:ActiveSupport::HashWithIndifferentAccess
-  binding: "."
+  binding: "*"
   inspection: Declares:doble
 - !ruby/hash:ActiveSupport::HashWithIndifferentAccess
   binding: triple

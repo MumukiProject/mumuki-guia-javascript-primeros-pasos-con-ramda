@@ -647,24 +647,17 @@
     };
   }
 
-  function _filter(fn, list) {
+  function _map(fn, functor) {
     var idx = 0;
-    var len = list.length;
-    var result = [];
+    var len = functor.length;
+    var result = Array(len);
 
     while (idx < len) {
-      if (fn(list[idx])) {
-        result[result.length] = list[idx];
-      }
-
+      result[idx] = fn(functor[idx]);
       idx += 1;
     }
 
     return result;
-  }
-
-  function _isObject(x) {
-    return Object.prototype.toString.call(x) === '[object Object]';
   }
 
   var _xfBase = {
@@ -676,20 +669,112 @@
     }
   };
 
-  function XFilter(f, xf) {
+  function XMap(f, xf) {
     this.xf = xf;
     this.f = f;
   }
 
-  XFilter.prototype['@@transducer/init'] = _xfBase.init;
-  XFilter.prototype['@@transducer/result'] = _xfBase.result;
+  XMap.prototype['@@transducer/init'] = _xfBase.init;
+  XMap.prototype['@@transducer/result'] = _xfBase.result;
 
-  XFilter.prototype['@@transducer/step'] = function (result, input) {
-    return this.f(input) ? this.xf['@@transducer/step'](result, input) : result;
+  XMap.prototype['@@transducer/step'] = function (result, input) {
+    return this.xf['@@transducer/step'](result, this.f(input));
   };
 
-  var _xfilter = _curry2(function _xfilter(f, xf) {
-    return new XFilter(f, xf);
+  var _xmap = _curry2(function _xmap(f, xf) {
+    return new XMap(f, xf);
+  });
+
+  /**
+   * Internal curryN function.
+   *
+   * @private
+   * @category Function
+   * @param {Number} length The arity of the curried function.
+   * @param {Array} received An array of arguments received thus far.
+   * @param {Function} fn The function to curry.
+   * @return {Function} The curried function.
+   */
+
+  function _curryN(length, received, fn) {
+    return function () {
+      var combined = [];
+      var argsIdx = 0;
+      var left = length;
+      var combinedIdx = 0;
+
+      while (combinedIdx < received.length || argsIdx < arguments.length) {
+        var result;
+
+        if (combinedIdx < received.length && (!_isPlaceholder(received[combinedIdx]) || argsIdx >= arguments.length)) {
+          result = received[combinedIdx];
+        } else {
+          result = arguments[argsIdx];
+          argsIdx += 1;
+        }
+
+        combined[combinedIdx] = result;
+
+        if (!_isPlaceholder(result)) {
+          left -= 1;
+        }
+
+        combinedIdx += 1;
+      }
+
+      return left <= 0 ? fn.apply(this, combined) : _arity(left, _curryN(length, combined, fn));
+    };
+  }
+
+  /**
+   * Returns a curried equivalent of the provided function, with the specified
+   * arity. The curried function has two unusual capabilities. First, its
+   * arguments needn't be provided one at a time. If `g` is `R.curryN(3, f)`, the
+   * following are equivalent:
+   *
+   *   - `g(1)(2)(3)`
+   *   - `g(1)(2, 3)`
+   *   - `g(1, 2)(3)`
+   *   - `g(1, 2, 3)`
+   *
+   * Secondly, the special placeholder value [`R.__`](#__) may be used to specify
+   * "gaps", allowing partial application of any combination of arguments,
+   * regardless of their positions. If `g` is as above and `_` is [`R.__`](#__),
+   * the following are equivalent:
+   *
+   *   - `g(1, 2, 3)`
+   *   - `g(_, 2, 3)(1)`
+   *   - `g(_, _, 3)(1)(2)`
+   *   - `g(_, _, 3)(1, 2)`
+   *   - `g(_, 2)(1)(3)`
+   *   - `g(_, 2)(1, 3)`
+   *   - `g(_, 2)(_, 3)(1)`
+   *
+   * @func
+   * @memberOf R
+   * @since v0.5.0
+   * @category Function
+   * @sig Number -> (* -> a) -> (* -> a)
+   * @param {Number} length The arity for the returned function.
+   * @param {Function} fn The function to curry.
+   * @return {Function} A new, curried function.
+   * @see R.curry
+   * @example
+   *
+   *      const sumArgs = (...args) => R.sum(args);
+   *
+   *      const curriedAddFourNumbers = R.curryN(4, sumArgs);
+   *      const f = curriedAddFourNumbers(1, 2);
+   *      const g = f(3);
+   *      g(4); //=> 10
+   */
+
+  var curryN = _curry2(function curryN(length, fn) {
+    if (length === 1) {
+      return _curry1(fn);
+    }
+
+    return _arity(length, _curryN(length, [], fn));
   });
 
   function _has(prop, obj) {
@@ -785,6 +870,96 @@
   });
 
   /**
+   * Takes a function and
+   * a [functor](https://github.com/fantasyland/fantasy-land#functor),
+   * applies the function to each of the functor's values, and returns
+   * a functor of the same shape.
+   *
+   * Ramda provides suitable `map` implementations for `Array` and `Object`,
+   * so this function may be applied to `[1, 2, 3]` or `{x: 1, y: 2, z: 3}`.
+   *
+   * Dispatches to the `map` method of the second argument, if present.
+   *
+   * Acts as a transducer if a transformer is given in list position.
+   *
+   * Also treats functions as functors and will compose them together.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category List
+   * @sig Functor f => (a -> b) -> f a -> f b
+   * @param {Function} fn The function to be called on every element of the input `list`.
+   * @param {Array} list The list to be iterated over.
+   * @return {Array} The new list.
+   * @see R.transduce, R.addIndex, R.pluck, R.project
+   * @example
+   *
+   *      const double = x => x * 2;
+   *
+   *      R.map(double, [1, 2, 3]); //=> [2, 4, 6]
+   *
+   *      R.map(double, {x: 1, y: 2, z: 3}); //=> {x: 2, y: 4, z: 6}
+   * @symb R.map(f, [a, b]) = [f(a), f(b)]
+   * @symb R.map(f, { x: a, y: b }) = { x: f(a), y: f(b) }
+   * @symb R.map(f, functor_o) = functor_o.map(f)
+   */
+
+  var map = _curry2(_dispatchable(['fantasy-land/map', 'map'], _xmap, function map(fn, functor) {
+    switch (Object.prototype.toString.call(functor)) {
+      case '[object Function]':
+        return curryN(functor.length, function () {
+          return fn.call(this, functor.apply(this, arguments));
+        });
+
+      case '[object Object]':
+        return _reduce(function (acc, key) {
+          acc[key] = fn(functor[key]);
+          return acc;
+        }, {}, keys(functor));
+
+      default:
+        return _map(fn, functor);
+    }
+  }));
+
+  function _filter(fn, list) {
+    var idx = 0;
+    var len = list.length;
+    var result = [];
+
+    while (idx < len) {
+      if (fn(list[idx])) {
+        result[result.length] = list[idx];
+      }
+
+      idx += 1;
+    }
+
+    return result;
+  }
+
+  function _isObject(x) {
+    return Object.prototype.toString.call(x) === '[object Object]';
+  }
+
+  function XFilter(f, xf) {
+    this.xf = xf;
+    this.f = f;
+  }
+
+  XFilter.prototype['@@transducer/init'] = _xfBase.init;
+  XFilter.prototype['@@transducer/result'] = _xfBase.result;
+
+  XFilter.prototype['@@transducer/step'] = function (result, input) {
+    return this.f(input) ? this.xf['@@transducer/step'](result, input) : result;
+  };
+
+  var _xfilter = _curry2(function _xfilter(f, xf) {
+    return new XFilter(f, xf);
+  });
+
+  /**
    * Takes a predicate and a `Filterable`, and returns a new filterable of the
    * same type containing the members of the given filterable which satisfy the
    * given predicate. Filterable objects include plain objects or any object
@@ -824,41 +999,57 @@
   }));
 
   /**
-   * Adds two values.
+   * Returns the nth element of the given list or string. If n is negative the
+   * element at index length + n is returned.
    *
    * @func
    * @memberOf R
    * @since v0.1.0
-   * @category Math
-   * @sig Number -> Number -> Number
-   * @param {Number} a
-   * @param {Number} b
-   * @return {Number}
-   * @see R.subtract
+   * @category List
+   * @sig Number -> [a] -> a | Undefined
+   * @sig Number -> String -> String
+   * @param {Number} offset
+   * @param {*} list
+   * @return {*}
    * @example
    *
-   *      R.add(2, 3);       //=>  5
-   *      R.add(7)(10);      //=> 17
+   *      const list = ['foo', 'bar', 'baz', 'quux'];
+   *      R.nth(1, list); //=> 'bar'
+   *      R.nth(-1, list); //=> 'quux'
+   *      R.nth(-99, list); //=> undefined
+   *
+   *      R.nth(2, 'abc'); //=> 'c'
+   *      R.nth(3, 'abc'); //=> ''
+   * @symb R.nth(-1, [a, b, c]) = c
+   * @symb R.nth(0, [a, b, c]) = a
+   * @symb R.nth(1, [a, b, c]) = b
    */
 
-  var add = _curry2(function add(a, b) {
-    return Number(a) + Number(b);
+  var nth = _curry2(function nth(offset, list) {
+    var idx = offset < 0 ? list.length + offset : offset;
+    return _isString(list) ? list.charAt(idx) : list[idx];
   });
 
   /**
-   * Increments its argument.
+   * Returns the first element of the given list or string. In some libraries
+   * this function is named `first`.
    *
    * @func
    * @memberOf R
-   * @since v0.9.0
-   * @category Math
-   * @sig Number -> Number
-   * @param {Number} n
-   * @return {Number} n + 1
-   * @see R.dec
+   * @since v0.1.0
+   * @category List
+   * @sig [a] -> a | Undefined
+   * @sig String -> String
+   * @param {Array|String} list
+   * @return {*}
+   * @see R.tail, R.init, R.last
    * @example
    *
-   *      R.inc(42); //=> 43
+   *      R.head(['fi', 'fo', 'fum']); //=> 'fi'
+   *      R.head([]); //=> undefined
+   *
+   *      R.head('abc'); //=> 'a'
+   *      R.head(''); //=> ''
    */
 
-  var inc = add(1);
+  var head = nth(0);

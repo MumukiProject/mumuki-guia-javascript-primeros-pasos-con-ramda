@@ -4,8 +4,8 @@ expectations:
   binding: "*"
   inspection: Declares:doble
 - !ruby/hash:ActiveSupport::HashWithIndifferentAccess
-  binding: triple
-  inspection: Declares
+  binding: "*"
+  inspection: Declares:triple
 - !ruby/hash:ActiveSupport::HashWithIndifferentAccess
-  binding: anterior
-  inspection: Declares
+  binding: "*"
+  inspection: Declares:anterior

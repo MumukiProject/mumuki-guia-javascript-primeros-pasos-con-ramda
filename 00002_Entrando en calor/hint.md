@@ -1,1 +1,1 @@
-Los strings tienen un método `charAt(índice)` que devuelve el carácter que indiquemos por parámetro.
+En Ramda hay una función llamada `head`, que devuelve el primer elemento de una lista... o de un string. :smirk:

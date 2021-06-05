@@ -1,4 +1,4 @@
-Te recordamos las funciones y algunos ejemplos:
+Te recordamos las funciones `both`, `either` y `complement`:
 
 ```js
 // Devuelve verdadero cuando ambas lo son (AND)
@@ -11,4 +11,4 @@ const esUnBuenPlato = either(tengoHambre, esRico)
 const esImpar = complement(esPar)
 ```
 
-Podés usar la **Consola** para terminar de familiarizarte con ellas.
+Si se te complica, pensalo por partes: hacé una función para la primera rama, otra para la segunda y luego combinalas.

@@ -11,4 +11,4 @@ const esUnBuenPlato = either(tengoHambre, esRico)
 const esImpar = complement(esPar)
 ```
 
-Si se te complica, pensalo por partes: hacé una función para la primera rama, otra para la segunda y luego combinalas.
+Si se te complica, pensalo por partes: hacé una función `cumpleCondicion1` para la primera rama, otra `cumpleCondicion2` para la segunda y luego combinalas para formar `esDivisible`.

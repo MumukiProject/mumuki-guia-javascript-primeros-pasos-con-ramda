@@ -10,7 +10,7 @@ describe("triplesMayoresA10", function() {
 describe("triplesDeLosMayores", function() {
   it("filtra y luego calcula los triples", function() {
     assert.deepEqual(
-      triplesDeLosMayores([8, 9, 10, 11]]), 
+      triplesDeLosMayores([8, 9, 10, 11]), 
       [33]
     )
   })

@@ -10,5 +10,3 @@ const esUnBuenPlato = either(tengoHambre, esRico)
 // Devuelve verdadero cuando la original da falso (NOT)
 const esImpar = complement(esPar)
 ```
-
-Si se te complica, pensalo por partes: hacé una función `cumpleCondicion1` para la primera rama, otra `cumpleCondicion2` para la segunda y luego combinalas para formar `esDivisible`.

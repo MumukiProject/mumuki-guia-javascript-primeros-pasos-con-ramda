@@ -1,5 +1,5 @@
 const divisiblePor = 
-  (x) => compose(equals(0), modulo(__, x))
+  (n) => (x) => x % n == 0
   
 const divisiblePor4 = divisiblePor(4)
 const divisiblePor100 = divisiblePor(100)

@@ -3,7 +3,7 @@
 //  (c) 2013-2021 Scott Sauyet, Michael Hurley, and David Chambers
 //  Ramda may be freely distributed under the MIT license.
 
-    function _arity(n, fn) {
+  function _arity(n, fn) {
     /* eslint-disable no-unused-vars */
     switch (n) {
       case 0:

@@ -9,3 +9,6 @@ expectations:
 - !ruby/hash:ActiveSupport::HashWithIndifferentAccess
   binding: "*"
   inspection: Declares:esBisiesto
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: esBisiesto
+  inspection: Not:UsesNot

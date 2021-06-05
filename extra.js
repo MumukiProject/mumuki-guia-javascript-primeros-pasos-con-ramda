@@ -1,4 +1,8 @@
-  function _arity(n, fn) {
+//  Ramda v0.27.1
+//  https://github.com/ramda/ramda
+//  (c) 2013-2021 Scott Sauyet, Michael Hurley, and David Chambers
+//  Ramda may be freely distributed under the MIT license.
+
     /* eslint-disable no-unused-vars */
     switch (n) {
       case 0:
@@ -1125,3 +1129,627 @@
   var lt = _curry2(function lt(a, b) {
     return a < b;
   });
+
+  function _arrayFromIterator(iter) {
+    var list = [];
+    var next;
+
+    while (!(next = iter.next()).done) {
+      list.push(next.value);
+    }
+
+    return list;
+  }
+
+  function _includesWith(pred, x, list) {
+    var idx = 0;
+    var len = list.length;
+
+    while (idx < len) {
+      if (pred(x, list[idx])) {
+        return true;
+      }
+
+      idx += 1;
+    }
+
+    return false;
+  }
+
+  function _functionName(f) {
+    // String(x => x) evaluates to "x => x", so the pattern may not match.
+    var match = String(f).match(/^function (\w*)/);
+    return match == null ? '' : match[1];
+  }
+
+  // Based on https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+  function _objectIs(a, b) {
+    // SameValue algorithm
+    if (a === b) {
+      // Steps 1-5, 7-10
+      // Steps 6.b-6.e: +0 != -0
+      return a !== 0 || 1 / a === 1 / b;
+    } else {
+      // Step 6.a: NaN == NaN
+      return a !== a && b !== b;
+    }
+  }
+
+  var _objectIs$1 = typeof Object.is === 'function' ? Object.is : _objectIs;
+
+  /**
+   * Gives a single-word string description of the (native) type of a value,
+   * returning such answers as 'Object', 'Number', 'Array', or 'Null'. Does not
+   * attempt to distinguish user Object types any further, reporting them all as
+   * 'Object'.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.8.0
+   * @category Type
+   * @sig (* -> {*}) -> String
+   * @param {*} val The value to test
+   * @return {String}
+   * @example
+   *
+   *      R.type({}); //=> "Object"
+   *      R.type(1); //=> "Number"
+   *      R.type(false); //=> "Boolean"
+   *      R.type('s'); //=> "String"
+   *      R.type(null); //=> "Null"
+   *      R.type([]); //=> "Array"
+   *      R.type(/[A-z]/); //=> "RegExp"
+   *      R.type(() => {}); //=> "Function"
+   *      R.type(undefined); //=> "Undefined"
+   */
+
+  var type = _curry1(function type(val) {
+    return val === null ? 'Null' : val === undefined ? 'Undefined' : Object.prototype.toString.call(val).slice(8, -1);
+  });
+
+  /**
+   * private _uniqContentEquals function.
+   * That function is checking equality of 2 iterator contents with 2 assumptions
+   * - iterators lengths are the same
+   * - iterators values are unique
+   *
+   * false-positive result will be returned for comparision of, e.g.
+   * - [1,2,3] and [1,2,3,4]
+   * - [1,1,1] and [1,2,3]
+   * */
+
+  function _uniqContentEquals(aIterator, bIterator, stackA, stackB) {
+    var a = _arrayFromIterator(aIterator);
+
+    var b = _arrayFromIterator(bIterator);
+
+    function eq(_a, _b) {
+      return _equals(_a, _b, stackA.slice(), stackB.slice());
+    } // if *a* array contains any element that is not included in *b*
+
+
+    return !_includesWith(function (b, aItem) {
+      return !_includesWith(eq, aItem, b);
+    }, b, a);
+  }
+
+  function _equals(a, b, stackA, stackB) {
+    if (_objectIs$1(a, b)) {
+      return true;
+    }
+
+    var typeA = type(a);
+
+    if (typeA !== type(b)) {
+      return false;
+    }
+
+    if (typeof a['fantasy-land/equals'] === 'function' || typeof b['fantasy-land/equals'] === 'function') {
+      return typeof a['fantasy-land/equals'] === 'function' && a['fantasy-land/equals'](b) && typeof b['fantasy-land/equals'] === 'function' && b['fantasy-land/equals'](a);
+    }
+
+    if (typeof a.equals === 'function' || typeof b.equals === 'function') {
+      return typeof a.equals === 'function' && a.equals(b) && typeof b.equals === 'function' && b.equals(a);
+    }
+
+    switch (typeA) {
+      case 'Arguments':
+      case 'Array':
+      case 'Object':
+        if (typeof a.constructor === 'function' && _functionName(a.constructor) === 'Promise') {
+          return a === b;
+        }
+
+        break;
+
+      case 'Boolean':
+      case 'Number':
+      case 'String':
+        if (!(_typeof(a) === _typeof(b) && _objectIs$1(a.valueOf(), b.valueOf()))) {
+          return false;
+        }
+
+        break;
+
+      case 'Date':
+        if (!_objectIs$1(a.valueOf(), b.valueOf())) {
+          return false;
+        }
+
+        break;
+
+      case 'Error':
+        return a.name === b.name && a.message === b.message;
+
+      case 'RegExp':
+        if (!(a.source === b.source && a.global === b.global && a.ignoreCase === b.ignoreCase && a.multiline === b.multiline && a.sticky === b.sticky && a.unicode === b.unicode)) {
+          return false;
+        }
+
+        break;
+    }
+
+    var idx = stackA.length - 1;
+
+    while (idx >= 0) {
+      if (stackA[idx] === a) {
+        return stackB[idx] === b;
+      }
+
+      idx -= 1;
+    }
+
+    switch (typeA) {
+      case 'Map':
+        if (a.size !== b.size) {
+          return false;
+        }
+
+        return _uniqContentEquals(a.entries(), b.entries(), stackA.concat([a]), stackB.concat([b]));
+
+      case 'Set':
+        if (a.size !== b.size) {
+          return false;
+        }
+
+        return _uniqContentEquals(a.values(), b.values(), stackA.concat([a]), stackB.concat([b]));
+
+      case 'Arguments':
+      case 'Array':
+      case 'Object':
+      case 'Boolean':
+      case 'Number':
+      case 'String':
+      case 'Date':
+      case 'Error':
+      case 'RegExp':
+      case 'Int8Array':
+      case 'Uint8Array':
+      case 'Uint8ClampedArray':
+      case 'Int16Array':
+      case 'Uint16Array':
+      case 'Int32Array':
+      case 'Uint32Array':
+      case 'Float32Array':
+      case 'Float64Array':
+      case 'ArrayBuffer':
+        break;
+
+      default:
+        // Values of other types are only equal if identical.
+        return false;
+    }
+
+    var keysA = keys(a);
+
+    if (keysA.length !== keys(b).length) {
+      return false;
+    }
+
+    var extendedStackA = stackA.concat([a]);
+    var extendedStackB = stackB.concat([b]);
+    idx = keysA.length - 1;
+
+    while (idx >= 0) {
+      var key = keysA[idx];
+
+      if (!(_has(key, b) && _equals(b[key], a[key], extendedStackA, extendedStackB))) {
+        return false;
+      }
+
+      idx -= 1;
+    }
+
+    return true;
+  }
+
+  /**
+   * Returns `true` if its arguments are equivalent, `false` otherwise. Handles
+   * cyclical data structures.
+   *
+   * Dispatches symmetrically to the `equals` methods of both arguments, if
+   * present.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.15.0
+   * @category Relation
+   * @sig a -> b -> Boolean
+   * @param {*} a
+   * @param {*} b
+   * @return {Boolean}
+   * @example
+   *
+   *      R.equals(1, 1); //=> true
+   *      R.equals(1, '1'); //=> false
+   *      R.equals([1, 2, 3], [1, 2, 3]); //=> true
+   *
+   *      const a = {}; a.v = a;
+   *      const b = {}; b.v = b;
+   *      R.equals(a, b); //=> true
+   */
+
+  var equals = _curry2(function equals(a, b) {
+    return _equals(a, b, [], []);
+  });
+
+  /**
+   * Divides the first parameter by the second and returns the remainder. Note
+   * that this function preserves the JavaScript-style behavior for modulo. For
+   * mathematical modulo see [`mathMod`](#mathMod).
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.1
+   * @category Math
+   * @sig Number -> Number -> Number
+   * @param {Number} a The value to the divide.
+   * @param {Number} b The pseudo-modulus
+   * @return {Number} The result of `b % a`.
+   * @see R.mathMod
+   * @example
+   *
+   *      R.modulo(17, 3); //=> 2
+   *      // JS behavior:
+   *      R.modulo(-17, 3); //=> -2
+   *      R.modulo(17, -3); //=> 2
+   *
+   *      const isOdd = R.modulo(R.__, 2);
+   *      isOdd(42); //=> 0
+   *      isOdd(21); //=> 1
+   */
+
+  var modulo = _curry2(function modulo(a, b) {
+    return a % b;
+  });
+
+  /**
+   * A special placeholder value used to specify "gaps" within curried functions,
+   * allowing partial application of any combination of arguments, regardless of
+   * their positions.
+   *
+   * If `g` is a curried ternary function and `_` is `R.__`, the following are
+   * equivalent:
+   *
+   *   - `g(1, 2, 3)`
+   *   - `g(_, 2, 3)(1)`
+   *   - `g(_, _, 3)(1)(2)`
+   *   - `g(_, _, 3)(1, 2)`
+   *   - `g(_, 2, _)(1, 3)`
+   *   - `g(_, 2)(1)(3)`
+   *   - `g(_, 2)(1, 3)`
+   *   - `g(_, 2)(_, 3)(1)`
+   *
+   * @name __
+   * @constant
+   * @memberOf R
+   * @since v0.6.0
+   * @category Function
+   * @example
+   *
+   *      const greet = R.replace('{name}', R.__, 'Hello, {name}!');
+   *      greet('Alice'); //=> 'Hello, Alice!'
+   */
+  var __ = {
+    '@@functional/placeholder': true
+  };
+
+  function _isFunction(x) {
+    var type = Object.prototype.toString.call(x);
+    return type === '[object Function]' || type === '[object AsyncFunction]' || type === '[object GeneratorFunction]' || type === '[object AsyncGeneratorFunction]';
+  }
+
+  /**
+   * Returns `true` if both arguments are `true`; `false` otherwise.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category Logic
+   * @sig a -> b -> a | b
+   * @param {Any} a
+   * @param {Any} b
+   * @return {Any} the first argument if it is falsy, otherwise the second argument.
+   * @see R.both, R.or
+   * @example
+   *
+   *      R.and(true, true); //=> true
+   *      R.and(true, false); //=> false
+   *      R.and(false, true); //=> false
+   *      R.and(false, false); //=> false
+   */
+
+  var and = _curry2(function and(a, b) {
+    return a && b;
+  });
+
+  /**
+   * Private `concat` function to merge two array-like objects.
+   *
+   * @private
+   * @param {Array|Arguments} [set1=[]] An array-like object.
+   * @param {Array|Arguments} [set2=[]] An array-like object.
+   * @return {Array} A new, merged array.
+   * @example
+   *
+   *      _concat([4, 5, 6], [1, 2, 3]); //=> [4, 5, 6, 1, 2, 3]
+   */
+  function _concat(set1, set2) {
+    set1 = set1 || [];
+    set2 = set2 || [];
+    var idx;
+    var len1 = set1.length;
+    var len2 = set2.length;
+    var result = [];
+    idx = 0;
+
+    while (idx < len1) {
+      result[result.length] = set1[idx];
+      idx += 1;
+    }
+
+    idx = 0;
+
+    while (idx < len2) {
+      result[result.length] = set2[idx];
+      idx += 1;
+    }
+
+    return result;
+  }
+
+  /**
+   * ap applies a list of functions to a list of values.
+   *
+   * Dispatches to the `ap` method of the second argument, if present. Also
+   * treats curried functions as applicatives.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.3.0
+   * @category Function
+   * @sig [a -> b] -> [a] -> [b]
+   * @sig Apply f => f (a -> b) -> f a -> f b
+   * @sig (r -> a -> b) -> (r -> a) -> (r -> b)
+   * @param {*} applyF
+   * @param {*} applyX
+   * @return {*}
+   * @example
+   *
+   *      R.ap([R.multiply(2), R.add(3)], [1,2,3]); //=> [2, 4, 6, 4, 5, 6]
+   *      R.ap([R.concat('tasty '), R.toUpper], ['pizza', 'salad']); //=> ["tasty pizza", "tasty salad", "PIZZA", "SALAD"]
+   *
+   *      // R.ap can also be used as S combinator
+   *      // when only two functions are passed
+   *      R.ap(R.concat, R.toUpper)('Ramda') //=> 'RamdaRAMDA'
+   * @symb R.ap([f, g], [a, b]) = [f(a), f(b), g(a), g(b)]
+   */
+
+  var ap = _curry2(function ap(applyF, applyX) {
+    return typeof applyX['fantasy-land/ap'] === 'function' ? applyX['fantasy-land/ap'](applyF) : typeof applyF.ap === 'function' ? applyF.ap(applyX) : typeof applyF === 'function' ? function (x) {
+      return applyF(x)(applyX(x));
+    } : _reduce(function (acc, f) {
+      return _concat(acc, map(f, applyX));
+    }, [], applyF);
+  });
+
+  /**
+   * "lifts" a function to be the specified arity, so that it may "map over" that
+   * many lists, Functions or other objects that satisfy the [FantasyLand Apply spec](https://github.com/fantasyland/fantasy-land#apply).
+   *
+   * @func
+   * @memberOf R
+   * @since v0.7.0
+   * @category Function
+   * @sig Number -> (*... -> *) -> ([*]... -> [*])
+   * @param {Function} fn The function to lift into higher context
+   * @return {Function} The lifted function.
+   * @see R.lift, R.ap
+   * @example
+   *
+   *      const madd3 = R.liftN(3, (...args) => R.sum(args));
+   *      madd3([1,2,3], [1,2,3], [1]); //=> [3, 4, 5, 4, 5, 6, 5, 6, 7]
+   */
+
+  var liftN = _curry2(function liftN(arity, fn) {
+    var lifted = curryN(arity, fn);
+    return curryN(arity, function () {
+      return _reduce(ap, map(lifted, arguments[0]), Array.prototype.slice.call(arguments, 1));
+    });
+  });
+
+  /**
+   * "lifts" a function of arity > 1 so that it may "map over" a list, Function or other
+   * object that satisfies the [FantasyLand Apply spec](https://github.com/fantasyland/fantasy-land#apply).
+   *
+   * @func
+   * @memberOf R
+   * @since v0.7.0
+   * @category Function
+   * @sig (*... -> *) -> ([*]... -> [*])
+   * @param {Function} fn The function to lift into higher context
+   * @return {Function} The lifted function.
+   * @see R.liftN
+   * @example
+   *
+   *      const madd3 = R.lift((a, b, c) => a + b + c);
+   *
+   *      madd3([100, 200], [30, 40], [5, 6, 7]); //=> [135, 136, 137, 145, 146, 147, 235, 236, 237, 245, 246, 247]
+   *
+   *      const madd5 = R.lift((a, b, c, d, e) => a + b + c + d + e);
+   *
+   *      madd5([10, 20], [1], [2, 3], [4], [100, 200]); //=> [117, 217, 118, 218, 127, 227, 128, 228]
+   */
+
+  var lift = _curry1(function lift(fn) {
+    return liftN(fn.length, fn);
+  });
+
+  /**
+   * A function which calls the two provided functions and returns the `&&`
+   * of the results.
+   * It returns the result of the first function if it is false-y and the result
+   * of the second function otherwise. Note that this is short-circuited,
+   * meaning that the second function will not be invoked if the first returns a
+   * false-y value.
+   *
+   * In addition to functions, `R.both` also accepts any fantasy-land compatible
+   * applicative functor.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.12.0
+   * @category Logic
+   * @sig (*... -> Boolean) -> (*... -> Boolean) -> (*... -> Boolean)
+   * @param {Function} f A predicate
+   * @param {Function} g Another predicate
+   * @return {Function} a function that applies its arguments to `f` and `g` and `&&`s their outputs together.
+   * @see R.either, R.and
+   * @example
+   *
+   *      const gt10 = R.gt(R.__, 10)
+   *      const lt20 = R.lt(R.__, 20)
+   *      const f = R.both(gt10, lt20);
+   *      f(15); //=> true
+   *      f(30); //=> false
+   *
+   *      R.both(Maybe.Just(false), Maybe.Just(55)); // => Maybe.Just(false)
+   *      R.both([false, false, 'a'], [11]); //=> [false, false, 11]
+   */
+
+  var both = _curry2(function both(f, g) {
+    return _isFunction(f) ? function _both() {
+      return f.apply(this, arguments) && g.apply(this, arguments);
+    } : lift(and)(f, g);
+  });
+
+  /**
+   * Returns `true` if one or both of its arguments are `true`. Returns `false`
+   * if both arguments are `false`.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category Logic
+   * @sig a -> b -> a | b
+   * @param {Any} a
+   * @param {Any} b
+   * @return {Any} the first argument if truthy, otherwise the second argument.
+   * @see R.either, R.and
+   * @example
+   *
+   *      R.or(true, true); //=> true
+   *      R.or(true, false); //=> true
+   *      R.or(false, true); //=> true
+   *      R.or(false, false); //=> false
+   */
+
+  var or = _curry2(function or(a, b) {
+    return a || b;
+  });
+
+  /**
+   * A function wrapping calls to the two functions in an `||` operation,
+   * returning the result of the first function if it is truth-y and the result
+   * of the second function otherwise. Note that this is short-circuited,
+   * meaning that the second function will not be invoked if the first returns a
+   * truth-y value.
+   *
+   * In addition to functions, `R.either` also accepts any fantasy-land compatible
+   * applicative functor.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.12.0
+   * @category Logic
+   * @sig (*... -> Boolean) -> (*... -> Boolean) -> (*... -> Boolean)
+   * @param {Function} f a predicate
+   * @param {Function} g another predicate
+   * @return {Function} a function that applies its arguments to `f` and `g` and `||`s their outputs together.
+   * @see R.both, R.or
+   * @example
+   *
+   *      const gt10 = x => x > 10;
+   *      const even = x => x % 2 === 0;
+   *      const f = R.either(gt10, even);
+   *      f(101); //=> true
+   *      f(8); //=> true
+   *
+   *      R.either(Maybe.Just(false), Maybe.Just(55)); // => Maybe.Just(55)
+   *      R.either([false, false, 'a'], [11]) // => [11, 11, "a"]
+   */
+
+  var either = _curry2(function either(f, g) {
+    return _isFunction(f) ? function _either() {
+      return f.apply(this, arguments) || g.apply(this, arguments);
+    } : lift(or)(f, g);
+  });
+
+  /**
+   * A function that returns the `!` of its argument. It will return `true` when
+   * passed false-y value, and `false` when passed a truth-y one.
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category Logic
+   * @sig * -> Boolean
+   * @param {*} a any value
+   * @return {Boolean} the logical inverse of passed argument.
+   * @see R.complement
+   * @example
+   *
+   *      R.not(true); //=> false
+   *      R.not(false); //=> true
+   *      R.not(0); //=> true
+   *      R.not(1); //=> false
+   */
+
+  var not = _curry1(function not(a) {
+    return !a;
+  });
+
+  /**
+   * Takes a function `f` and returns a function `g` such that if called with the same arguments
+   * when `f` returns a "truthy" value, `g` returns `false` and when `f` returns a "falsy" value `g` returns `true`.
+   *
+   * `R.complement` may be applied to any functor
+   *
+   * @func
+   * @memberOf R
+   * @since v0.12.0
+   * @category Logic
+   * @sig (*... -> *) -> (*... -> Boolean)
+   * @param {Function} f
+   * @return {Function}
+   * @see R.not
+   * @example
+   *
+   *      const isNotNil = R.complement(R.isNil);
+   *      R.isNil(null); //=> true
+   *      isNotNil(null); //=> false
+   *      R.isNil(7); //=> false
+   *      isNotNil(7); //=> true
+   */
+
+  var complement = lift(not);

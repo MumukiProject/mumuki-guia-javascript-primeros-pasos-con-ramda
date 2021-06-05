@@ -1,7 +1,9 @@
 Utilizando todo lo que aprendiste en el taller, te proponemos un desafío. :muscle:
 
+A partir de una lista de estudiantes, que tiene este formato:
+
 ```js
-const estudiantes = [
+[
   { nombre: 'Fermín', edad: 23, 
     talleresAprobados: ['docker', 'funcional'] },
   { nombre: 'Mara', edad: 19, talleresAprobados: [] },
@@ -13,3 +15,5 @@ const estudiantes = [
   // ...más estudiantes...
 ]
 ```
+
+> Escribí una función que devuelva la cantidad de talleres que aprobó la persona con más edad. 

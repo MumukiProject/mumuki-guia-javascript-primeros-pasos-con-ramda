@@ -1,0 +1,14 @@
+---
+expectations:
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: "*"
+  inspection: Declares:triplesMayoresA10
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: "*"
+  inspection: Declares:triplesDeLosMayores
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: triplesMayoresA10
+  inspection: Uses:compose
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: triplesDeLosMayores
+  inspection: Uses:compose

@@ -1,5 +1,13 @@
-describe("Descripción del grupo", function() {
-  it("Descripción del ejemplo", function() {
-    assert(dobleDelSiguiente(1) == 4)
+describe("esBisiesto", function() {
+  it("año divisible por 400", function() {
+    assert(esBisiesto(2000))
+  })
+
+  it("año divisible por 4 y no por 100", function() {
+    assert(esBisiesto(1996))
+  })
+
+  it("año divisible por 4 y también por 100", function() {
+    assert(!esBisiesto(1900))
   })
 })

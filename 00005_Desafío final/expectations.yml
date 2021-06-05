@@ -1,0 +1,8 @@
+---
+expectations:
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: "*"
+  inspection: Declares:talleresDeLaPersonaMayor
+- !ruby/hash:ActiveSupport::HashWithIndifferentAccess
+  binding: talleresDeLaPersonaMayor
+  inspection: Uses:compose

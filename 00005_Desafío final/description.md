@@ -16,4 +16,4 @@ A partir de una lista de estudiantes, que tiene este formato:
 ]
 ```
 
-> Escribí una función que devuelva la cantidad de talleres que aprobó la persona con más edad. 
+> Escribí una función llamada `talleresDeLaPersonaMayor` que devuelva la cantidad de talleres que aprobó la persona de mayor edad. 
